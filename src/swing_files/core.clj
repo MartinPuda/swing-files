@@ -3,7 +3,7 @@
             [clojure.pprint :as pp])
   (:import (javax.swing JFrame JTextArea JTable JScrollPane BorderFactory
                         JTextField JPanel JButton)
-           (java.awt Dimension BorderLayout FlowLayout)
+           (java.awt Dimension BorderLayout FlowLayout Desktop)
            (java.io File)
            [org.apache.commons.io FileUtils]
            (java.time.format DateTimeFormatter)
@@ -129,12 +129,14 @@
                     (proxy [MouseAdapter] []
                       (mouseClicked [event]
                         (if (= 2 (.getClickCount event))
-                          (do (.setViewportView
-                                scroll
-                                (make-data-table (vreset! current-absolute-file
-                                                          (File. (.getAbsolutePath @current-absolute-file)
-                                                                 ^String (.getValueAt table (.getSelectedRow table) 0)))))
-                              (.setText filename (.getAbsolutePath @current-absolute-file)))
+                          (let [file (File. (.getAbsolutePath @current-absolute-file)
+                                            ^String (.getValueAt table (.getSelectedRow table) 0))]
+                            (if (dir? file) (do (.setViewportView
+                                                  scroll
+                                                  (make-data-table (vreset! current-absolute-file
+                                                                            file)))
+                                                (.setText filename (.getAbsolutePath @current-absolute-file)))
+                                            (.open (Desktop/getDesktop) file)))
 
                           (let [file (File. (.getAbsolutePath @current-absolute-file)
                                             ^String (.getValueAt table
